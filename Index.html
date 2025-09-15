@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>👾 Tool BACCARAT — MDATZZ V16</title>
+  <style>
+    body { background:#0b0f14; color:#e8eef5; font-family:system-ui, sans-serif; margin:0; padding:20px;}
+    .wrap { max-width:900px; margin:auto; background:#0f1621; padding:20px; border-radius:12px;}
+    h1 { text-align:center; font-size:22px; margin-bottom:14px; color:#4da3ff;}
+    label { font-size:14px; display:block; margin-top:8px;}
+    input[type=number]{width:100%; padding:10px; border-radius:8px; border:1px solid #274057; background:#0c141d; color:#fff;}
+    button{padding:10px 14px; border:0; border-radius:8px; cursor:pointer; font-weight:700;}
+    .primary{background:#1c6ef2; color:#fff;}
+    .ghost{background:#13202c; color:#eee; border:1px solid #274057;}
+    .danger{background:#dc3545; color:#fff;}
+    .success{background:#28a745; color:#fff;}
+    .secondary{background:#2b3b4a; color:#eee;}
+    .predict{margin-top:18px; padding:18px; background:#081018; border-radius:12px;}
+    .circle{width:90px; height:90px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:800; margin-right:18px;}
+    .row{display:flex; align-items:center;}
+    .note{margin-top:10px; font-size:13px; color:#9fbfdc;}
+    .history,.stats,.weights{margin-top:18px; padding:12px; background:#0c1a25; border-radius:10px; display:none; max-height:420px; overflow:auto;}
+    .history-entry{padding:8px; margin-bottom:8px; border-bottom:1px solid #274057; font-size:14px; white-space:pre-line;}
+    .actions{margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;}
+    .muted{color:#7da3c3; font-size:13px;}
+    #saveStatus{display:none; margin-top:10px; font-weight:700;}
+    @keyframes pulseRed {0%{box-shadow:0 0 8px #ff0000}50%{box-shadow:0 0 32px #ff3b3b; transform:scale(1.08)}100%{box-shadow:0 0 8px #ff0000}}
+    @keyframes pulseBlue{0%{box-shadow:0 0 8px #1c6ef2}50%{box-shadow:0 0 32px #4da3ff; transform:scale(1.08)}100%{box-shadow:0 0 8px #1c6ef2}}
+    @keyframes pulseGreen{0%{box-shadow:0 0 8px #28a745}50%{box-shadow:0 0 28px #5bd66b; transform:scale(1.06)}100%{box-shadow:0 0 8px #28a745}}
+    .flash-red{background:#e63946;color:white;animation:pulseRed 1.5s infinite}
+    .flash-blue{background:#1c6ef2;color:white;animation:pulseBlue 1.5s infinite}
+    .flash-green{background:#2eb82e;color:white;animation:pulseGreen 1.5s infinite}
+    .small{font-size:13px;color:#bcd;}
+    table{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px;}
+    th,td{border:1px solid #274057;padding:6px;text-align:center;}
+    th{background:#13202c;}
+    .progress{height:10px;border-radius:5px;overflow:hidden;background:#222;margin-top:4px;}
+    .bar{height:100%;}
+    .bar.blue{background:#1c6ef2;}
+    .bar.red{background:#dc3545;}
+    .bar.green{background:#28a745;}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>👾 TOOL BACCARAT — MDATZZ V16 👾</h1>
+
+  <div>
+    <label>PLAYER</label>
+    <input type="number" id="player" placeholder="Nhập điểm PLAYER" />
+    <label>BANKER</label>
+    <input type="number" id="banker" placeholder="Nhập điểm BANKER" />
+  </div>
+
+  <div class="actions">
+    <button class="primary" id="predictBtn">Dự đoán</button>
+    <button class="ghost" id="clearBtn">Xoá</button>
+    <button class="secondary" id="showHistBtn">Lịch sử</button>
+    <button class="secondary" id="showStatsBtn">Thống kê %</button>
+    <button class="secondary" id="showWeightsBtn">Trọng số</button>
+  </div>
+
+  <div class="predict" id="predictBox" style="display:none;">
+    <div class="row">
+      <div class="circle" id="predCircle">?</div>
+      <div style="flex:1">
+        <div id="predResult" style="font-size:20px;font-weight:800">—</div>
+        <div id="predDetail" class="muted">—</div>
+      </div>
+    </div>
+
+    <div class="note">Thuật toán: tự học cập nhật trọng số, ưu tiên giảm lỗi tối đa.</div>
+
+    <div class="feedback">
+      <label>Kết quả thực tế</label>
+      <div class="row" style="gap:10px;margin-top:8px;">
+        <input type="number" id="realPlayer" placeholder="PLAYER" />
+        <input type="number" id="realBanker" placeholder="BANKER" />
+      </div>
+      <div class="actions" style="margin-top:10px;">
+        <button class="primary" id="markCorrect">PLAYER</button>
+        <button class="danger" id="markWrong">BANKER</button>
+        <button class="success" id="markDraw">HÒA</button>
+      </div>
+      <div id="saveStatus"></div>
+    </div>
+  </div>
+
+  <div class="history" id="historyBox">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <div><strong>📜 Lịch sử dự đoán</strong></div>
+      <button class="ghost" id="closeHistBtn">Đóng</button>
+    </div>
+    <div id="historyList"></div>
+  </div>
+
+  <div class="stats" id="statsBox">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <div><strong>📊 Thống kê %</strong></div>
+      <button class="ghost" id="closeStatsBtn">Đóng</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Loại</th><th>Số lần</th><th>Đúng</th><th>Sai</th><th>Tỉ lệ</th>
+        </tr>
+      </thead>
+      <tbody id="statsTable"></tbody>
+    </table>
+  </div>
+
+  <div class="weights" id="weightsBox">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <div><strong>⚙️ Trọng số</strong></div>
+      <button class="ghost" id="closeWeightsBtn">Đóng</button>
+    </div>
+    <pre id="weightsContent" style="font-size:13px;color:#9fbfdc;white-space:pre-wrap;"></pre>
+  </div>
+</div>
+
+<script>
+const HISTORY_KEY = 'bcr_history_v16';
+const WEIGHTS_KEY = 'bcr_weights_v16';
+const LR_DEFAULT = 0.25;
+
+function loadHistory(){ try{return JSON.parse(localStorage.getItem(HISTORY_KEY))||[]}catch(e){return [];} }
+function saveHistory(h){ localStorage.setItem(HISTORY_KEY, JSON.stringify(h)); }
+function loadWeights(){
+  try{const raw=localStorage.getItem(WEIGHTS_KEY); if(raw) return JSON.parse(raw);}catch(e){}
+  return {P:[-3,0,1,0,3,1],B:[3,0,-1,0,-3,1],D:[0,0,0,0,0,2],lr:LR_DEFAULT};
+}
+function saveWeights(w){ localStorage.setItem(WEIGHTS_KEY, JSON.stringify(w)); }
+
+function features(p,b){
+  const v1 = p>b?1:(p<b?-1:0);
+  const r=(p+1)/(b+1);
+  const v2 = r>1.2?1:(r<0.8?-1:0);
+  const d3=(p%3)-(b%3);
+  const v3=d3>0?1:(d3<0?-1:0);
+  const v4=Math.abs(p-b)>=4?(p>b?1:-1):0;
+  const d5=(p%4)-(b%4);
+  const v5=d5>0?1:(d5<0?-1:0);
+  const v6=Math.abs(p-b)<=1?1:0;
+  return [v1,v2,v3,v4,v5,v6,r];
+}
+function dot(w,vs){let s=0;for(let i=0;i<vs.length;i++)s+=(w[i]||0)*vs[i];return s;}
+function predict(p,b){
+  const w=loadWeights();const f=features(p,b);const vs=f.slice(0,6);const r=f[6];
+  let sP=dot(w.P,vs),sB=dot(w.B,vs),sD=dot(w.D,vs);
+  if(vs[5]===1 && sD>=sP && sD>=sB) return {final:'HÒA',scores:{P:sP,B:sB,D:sD},r:r.toFixed(3)};
+  const final=sP>=sB?'PLAYER':'BANKER';
+  return {final,scores:{P:sP,B:sB,D:sD},r:r.toFixed(3)};
+}
+function updateWeights(p,b,actual){
+  const w=loadWeights();const f=features(p,b);const vs=f.slice(0,6);const lr=w.lr||LR_DEFAULT;
+  const target={PLAYER:0,BANKER:0,'HÒA':0};target[actual]=1;
+  ['PLAYER','BANKER','HÒA'].forEach(cls=>{
+    const arr=(cls==='PLAYER'?w.P:(cls==='BANKER'?w.B:w.D));const t=target[cls];
+    for(let i=0;i<vs.length;i++) arr[i]=(arr[i]||0)+(t===1?lr*vs[i]:-lr*vs[i]*0.4);
+  });saveWeights(w);
+}
+function record(actual,realP,realB){
+  if(!window._lastPrediction){alert('Chưa có dự đoán');return;}
+  const hist=loadHistory();
+  const entry={inP:window._lastPrediction.inP,inB:window._lastPrediction.inB,pred:window._lastPrediction.out.final,realP,realB,result:actual,time:Date.now()};
+  hist.push(entry);saveHistory(hist);
+  updateWeights(entry.inP,entry.inB,actual);
+  setStatus('✅ Đã lưu kết quả: '+actual,'#4da3ff');
+}
+function setStatus(text,color){const el=document.getElementById('saveStatus');el.style.display='block';el.style.color=color||'#fff';el.textContent=text;setTimeout(()=>{el.style.display='none';},3000);}
+
+document.getElementById('predictBtn').addEventListener('click',()=>{
+  const p=Number(document.getElementById('player').value),b=Number(document.getElementById('banker').value);
+  if(Number.isNaN(p)||Number.isNaN(b)){alert('Nhập đủ 2 số');return;}
+  const out=predict(p,b);window._lastPrediction={inP:p,inB:b,out};
+  document.getElementById('predictBox').style.display='block';
+  const resEl=document.getElementById('predResult');
+  resEl.textContent=out.final;resEl.style.color=(out.final==='PLAYER'?'#4da3ff':(out.final==='BANKER'?'#ff4d4d':'#5bd66b'));
+  document.getElementById('predDetail').textContent=`P=${out.scores.P.toFixed(2)} B=${out.scores.B.toFixed(2)} D=${out.scores.D.toFixed(2)} · r=${out.r}`;
+  const circle=document.getElementById('predCircle');
+  circle.textContent=(out.final==='PLAYER'?'P':(out.final==='BANKER'?'B':'H'));
+  circle.className='circle '+(out.final==='PLAYER'?'flash-blue':(out.final==='BANKER'?'flash-red':'flash-green'));
+});
+document.getElementById('clearBtn').addEventListener('click',()=>{
+  document.getElementById('player').value='';document.getElementById('banker').value='';
+  document.getElementById('predictBox').style.display='none';window._lastPrediction=null;
+});
+document.getElementById('markCorrect').addEventListener('click',()=>{
+  const rp=Number(document.getElementById('realPlayer').value||0),rb=Number(document.getElementById('realBanker').value||0);
+  record('PLAYER',rp,rb);
+});
+document.getElementById('markWrong').addEventListener('click',()=>{
+  const rp=Number(document.getElementById('realPlayer').value||0),rb=Number(document.getElementById('realBanker').value||0);
+  record('BANKER',rp,rb);
+});
+document.getElementById('markDraw').addEventListener('click',()=>{
+  const rp=Number(document.getElementById('realPlayer').value||0),rb=Number(document.getElementById('realBanker').value||0);
+  record('HÒA',rp,rb);
+});
+document.getElementById('showHistBtn').addEventListener('click',()=>{
+  const box=document.getElementById('historyBox');box.style.display='block';const list=document.getElementById('historyList');list.innerHTML='';
+  const hist=loadHistory();if(hist.length===0){list.innerHTML='<div class="muted">Chưa có dữ liệu</div>';return;}
+  hist.forEach(h=>{const d=document.createElement('div');d.className='history-entry';d.textContent=`${new Date(h.time).toLocaleString()}\nNhập: P=${h.inP}, B=${h.inB}\nThực tế: P=${h.realP}, B=${h.realB}\nKết quả: ${h.result} (dự đoán: ${h.pred})`;list.appendChild(d);});
+});
+document.getElementById('closeHistBtn').addEventListener('click',()=>{document.getElementById('historyBox').style.display='none';});
+document.getElementById('showStatsBtn').addEventListener('click',()=>{
+  const box=document.getElementById('statsBox');box.style.display='block';const list=document.getElementById('statsTable');list.innerHTML='';
+  const hist=loadHistory();if(hist.length===0){list.innerHTML='<tr><td colspan="5" class="muted">Chưa có dữ liệu</td></tr>';return;}
+  const summary={PLAYER:{total:0,correct:0},BANKER:{total:0,correct:0},'HÒA':{total:0,correct:0}};
+  hist.forEach(h=>{if(summary[h.pred]){summary[h.pred].total++;if(h.pred===h.result)summary[h.pred].correct++;}});
+  Object.keys(summary).forEach(k=>{const s=summary[k];const wrong=s.total-s.correct;const ratio=s.total>0?((s.correct/s.total)*100).toFixed(1):'0.0';
+    const tr=document.createElement('tr');tr.innerHTML=`<td>${k}</td><td>${s.total}</td><td style="color:#28a745">${s.correct}</td><td style="color:#dc3545">${wrong}</td><td>${ratio}%<div class="progress"><div class="bar ${(k==='PLAYER'?'blue':k==='BANKER'?'red':'green')}" style="width:${ratio}%"></div></div></td>`;list.appendChild(tr);});
+});
+document.getElementById('closeStatsBtn').addEventListener('click',()=>{document.getElementById('statsBox').style.display='none';});
+document.getElementById('showWeightsBtn').addEventListener('click',()=>{
+  const box=document.getElementById('weightsBox');box.style.display='block';const w=loadWeights();
+  document.getElementById('weightsContent').textContent=JSON.stringify(w,null,2);
+});
+document.getElementById('closeWeightsBtn').addEventListener('click',()=>{document.getElementById('weightsBox').style.display='none';});
+</script>
+</body>
+  </html>
